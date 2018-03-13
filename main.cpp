@@ -32,10 +32,13 @@ void kinetic_energy ();
 void pair_dist();
 
 // To calculate velocity dist function
-void vel_auto();
+void vel_auto(int step);
 
 // clearing matrix
 void clearing();
+
+// scaling velocity
+void scaling(float kinetic);
 
 /////////////////////////////////////////////////////////////////////////////################################################################///////////////////////////////////////////////////////////
 
@@ -45,6 +48,13 @@ int main()
 
     // Reading from file
     declearation("data.txt");
+
+    for (i = 0 ; i<864; i++)
+    {
+      init_vel[i][0] = vel[i][0];
+      init_vel[i][1] = vel[i][1];
+      init_vel[i][2] = vel[i][2];
+    }
 
     // calculating dist for further use
 
@@ -56,12 +66,13 @@ int main()
 
     // Now starting the real loop
     // for 100 time steps
-    for (int step = 0; step < 100; step++)
+    for (int step = 0; step < 1000; step++)
     {
       potential = 0;
       kinetic = 0;
 
       distance_cal(pos, dist);
+      if(step%10 == 0)  vel_auto(step);
 
       // In each step going in loop to update everything
       for (i = 0; i<864; i++)
@@ -88,14 +99,16 @@ int main()
       for (i = 0; i<864; i++)
       {
 
-            cout << pos[i][0] << "  " << pos[i][1] << "  " << pos[i][2] << "  " << kinetic << "  " << potential <<   "  " << vel[i][0]  << "  " << acc[i][0] << "  " << (potential/2 + kinetic)  << "  " << temp << endl;
+            //cout << pos[i][0] << "  " << pos[i][1] << "  " << pos[i][2] << "  " << kinetic << "  " << potential <<   "  " << vel[i][0]  << "  " << acc[i][0] << "  " << (potential/2 + kinetic)  << "  " << temp << endl;
       }
+
+      scaling(kinetic);
 
       clearing();
 
     }
 
-
+pair_dist();
 
 
 return 0;
@@ -106,19 +119,77 @@ return 0;
 
 // Will write functions here
 
+void scaling(float kinetic)
+{
+  float temperature = (2000/4.8443) * kinetic;
+  float scale = pow((50509664/temperature) , .5);
+
+  for (i = 0; i<864; i++)
+  {
+    vel[i][0] = vel[i][0] * scale;
+    vel[i][1] = vel[i][1] * scale;
+    vel[i][2] = vel[i][2] * scale;
+  }
+
+}
+
+
+void vel_auto(int step)
+{
+    float temp, x_comp, y_comp, z_comp,res = 0;
+    for (i = 0; i<864; i++)
+    {
+      x_comp = init_vel[i][0]*vel[i][0];
+      y_comp = init_vel[i][1]*vel[i][1];
+      z_comp = init_vel[i][2]*vel[i][2];
+      temp =  pow( (pow(vel[i][0],2) + pow(vel[i][1],2) + pow(vel[i][2],2) ),.5) * pow( (pow(init_vel[i][0],2) + pow(init_vel[i][1],2) + pow(init_vel[i][2],2) ),.5) ;
+      res = res + (x_comp + y_comp + z_comp)/ temp;
+    }
+
+    cout << res/864 << "  " << step * .01 << endl;
+}
+
+
 void pair_dist()
 {
   // getting an atom from center
 for (i = 0; i< 20; i++)
+{
   int flag = 0;
-  if ((posx-17.39) > 9.6) flag++;
-  if ((posy-17.39) > 9.6) flag++;
-  if ((posz-17.39) > 9.6) flag++;
+  if ((pos[i][0]-17.39) > 10) flag++;
+  if ((pos[i][1]-17.39) > 10) flag++;
+  if ((pos[i][2]-17.39) > 10) flag++;
+  if (flag == 0) break;
+}
 
+float posx = pos[i][0];
+float posy = pos[i][1];
+float posz = pos[i][2];
 
+for ( i = 0; i<864; i++)
+{
+  float temp =  pow( (pow(pos[i][0]-posx,2) + pow(pos[i][1]-posy,2) + pow(pos[i][2]-posz,2) ),.5);
+  dist[i] = temp;
+}
+
+// calculating correlation
+float delta_r = 1.0;
+float gr , r;
+int count;
+for (i = 0; i< 100; i++)
+{
+    count = 0;
+    for (int j=0; j< 864; j++)
+    {
+      if (dist[j] > i/7.0 && dist[j] < (i/7.0)+(1/7.0)) count ++;
+    }
+    gr = 50 * count/(1.8 * pow((i+1)/7.0,2));
+
+    cout << gr << "  " << (i+1)/7.0 << endl;
 
 }
 
+}
 
 float update_all(float * posx, float * posy, float * posz, float * velx, float  * vely, float  * velz, float accx, float accy, float accz,float last_accx, float last_accy, float last_accz, float delta_time)
 {

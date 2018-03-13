@@ -2,6 +2,7 @@
 
 float pos[864][3];
 float vel[864][3];
+float init_vel[864][3];
 float acc[864][3];
 float last_acc[864][3];
 float dist[864];
