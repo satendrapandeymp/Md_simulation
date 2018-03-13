@@ -47,7 +47,6 @@ int main()
     declearation("data.txt");
 
     // calculating dist for further use
-    //distance_cal(pos, dist);
 
     // To calculate force on each atom
     for ( i = 0; i<864; i++)
@@ -61,6 +60,8 @@ int main()
     {
       potential = 0;
       kinetic = 0;
+
+      distance_cal(pos, dist);
 
       // In each step going in loop to update everything
       for (i = 0; i<864; i++)
@@ -81,9 +82,13 @@ int main()
             kinetic = kinetic + update_all(&pos[i][0], &pos[i][1], &pos[i][2], &vel[i][0], &vel[i][1] ,  &vel[i][2] , acc[i][0], acc[i][1], acc[i][2],last_acc[i][0], last_acc[i][1], last_acc[i][2], delta_time);
       }
 
-      for (i = 0; i<1; i++)
+      float temp;
+      temp = 2 * kinetic/(3*864);
+
+      for (i = 0; i<864; i++)
       {
-            cout << pos[i][0] << "  " << pos[i][1] << "  " << pos[i][2] << "  " << (kinetic + potential) << endl;
+
+            cout << pos[i][0] << "  " << pos[i][1] << "  " << pos[i][2] << "  " << kinetic << "  " << potential <<   "  " << vel[i][0]  << "  " << acc[i][0] << "  " << (potential/2 + kinetic)  << "  " << temp << endl;
       }
 
       clearing();
@@ -101,11 +106,24 @@ return 0;
 
 // Will write functions here
 
+void pair_dist()
+{
+  // getting an atom from center
+for (i = 0; i< 20; i++)
+  int flag = 0;
+  if ((posx-17.39) > 9.6) flag++;
+  if ((posy-17.39) > 9.6) flag++;
+  if ((posz-17.39) > 9.6) flag++;
+
+
+
+}
+
 
 float update_all(float * posx, float * posy, float * posz, float * velx, float  * vely, float  * velz, float accx, float accy, float accz,float last_accx, float last_accy, float last_accz, float delta_time)
 {
   float kinetic;
-  float mbk = 1/.0247713;
+  float mbk = 4.8443;
 
   *posx = *posx + *velx * delta_time + accx * delta_time * delta_time/2;
   *posy = *posy + *vely * delta_time + accy * delta_time * delta_time/2;
@@ -119,11 +137,11 @@ float update_all(float * posx, float * posy, float * posz, float * velx, float  
   if (*posz > 34.78) *posz = *posz - 34.78;
   if (*posz < 0) *posz = *posz + 34.78;
 
-  kinetic = mbk * (pow(*velx, 2) + pow(*vely, 2) + pow(*velz, 2))/2;
-
   *velx = *velx + (accx + last_accx) * delta_time/2;
   *vely = *vely + (accy + last_accy) * delta_time/2;
   *velz = *velz + (accz + last_accz) * delta_time/2;
+
+  kinetic = mbk * (pow(*velx, 2) + pow(*vely, 2) + pow(*velz, 2))/2000;
 
   return kinetic;
 
@@ -170,9 +188,9 @@ float force_cal(float posx, float posy, float posz, float * accx, float * accy, 
   float potential = 0;
 // For all Atoms
   int flag = 0;
-  if ((posx-17.39) > 9.8) flag++;
-  if ((posy-17.39) > 9.8) flag++;
-  if ((posz-17.39) > 9.8) flag++;
+  if ((posx-17.39) > 9.6) flag++;
+  if ((posy-17.39) > 9.6) flag++;
+  if ((posz-17.39) > 9.6) flag++;
 
 for (int i = 0; i<27; i++)
 {
@@ -196,11 +214,15 @@ if ((abs(cor_x) + abs(cor_y) + abs(cor_z)) <= flag)
               {
                   // Beware of units, its acc not force
                   // letus measure energy in form of kt
-                  potential = potential + 4 * 120 * ((pow((sigma/r),12))  - (pow((sigma/r),6)));
-                  float force = 4 * kbm * ((pow((sigma/r),13) * 12)  - (pow((sigma/r),7) * 6))/ sigma;
+                  potential = potential + 4 * epsilon * ((pow((sigma/r),12))  - (pow((sigma/r),6)));
+                  float force = -4000 * kbm * epsilon * ((pow((sigma/r),13) * 12)  - (pow((sigma/r),7) * 6))/ sigma;
                   *accx = *accx + force * ((pos[j][0] + cor_x * 34.78)-posx)/r;
-                  *accy = *accy + force * ((pos[j][1] + cor_x * 34.78)-posy)/r;
-                  *accz = *accz + force * ((pos[j][2] + cor_x * 34.78 )-posz)/r;
+                  *accy = *accy + force * ((pos[j][1] + cor_y * 34.78)-posy)/r;
+                  *accz = *accz + force * ((pos[j][2] + cor_z * 34.78 )-posz)/r;
+                  if (potential > 1000000000)
+                  {
+                    //cout << potential << "  " << *accz << "  " << r << "  " << posx << "  " << pos[j][0] + cor_x * 34.78 << "  " <<  posy << "  " << pos[j][1] + cor_y * 34.78 << "  " << posz << "  " << pos[j][2] + cor_z * 34.78 << "  "  << endl;
+                  }
 
               }
             }

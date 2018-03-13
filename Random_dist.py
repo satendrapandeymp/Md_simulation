@@ -37,9 +37,9 @@ while(len(pos) > 864):
 
 # Creating velocity
 # I used numpy in python to get Normal distribution with V2 summation
-x_vel = np.random.normal(140, 30, 864)
-y_vel = np.random.normal(140, 30, 864)
-z_vel = np.random.normal(140, 30, 864)
+x_vel = np.random.normal(138, 30, 864)
+y_vel = np.random.normal(138, 30, 864)
+z_vel = np.random.normal(138, 30, 864)
 
 for i in xrange(0,864):
     dic = {"vx":x_vel[i], "vy":y_vel[i], "vz":z_vel[i]}
